@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Reporte de Trabajo</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@600;700&display=swap');
+
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #22263a;
+    --border: #2e3350;
+    --accent: #3d6fff;
+    --accent2: #5affcd;
+    --text: #e8eaf2;
+    --muted: #6b7194;
+    --danger: #ff4d6d;
+    --success: #2bdd9b;
+    --radius: 14px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Barlow', sans-serif;
+    min-height: 100vh;
+    padding-bottom: 40px;
+  }
+
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 18px 20px 14px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  .header-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: var(--accent2);
+    text-transform: uppercase;
+    margin-bottom: 2px;
+  }
+
+  header h1 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: var(--text);
+  }
+
+  .form-body {
+    padding: 20px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    max-width: 480px;
+    margin: 0 auto;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px 16px;
+  }
+
+  .section-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+
+  .field { margin-bottom: 16px; }
+  .field:last-child { margin-bottom: 0; }
+
+  label {
+    display: block;
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 7px;
+    font-weight: 500;
+  }
+
+  input[type="text"],
+  input[type="date"],
+  input[type="number"],
+  select {
+    width: 100%;
+    background: var(--surface2);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-family: 'Barlow', sans-serif;
+    font-size: 16px;
+    padding: 13px 14px;
+    appearance: none;
+    -webkit-appearance: none;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  input:focus, select:focus {
+    border-color: var(--accent);
+  }
+
+  input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(0.6);
+  }
+
+  /* Big tap buttons for tipo */
+  .tipo-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .tipo-btn {
+    background: var(--surface2);
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    color: var(--muted);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    padding: 16px 10px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.15s;
+    line-height: 1.3;
+    user-select: none;
+  }
+
+  .tipo-btn.selected {
+    border-color: var(--accent);
+    background: rgba(61,111,255,0.12);
+    color: var(--text);
+  }
+
+  .tipo-btn .icon {
+    display: block;
+    font-size: 22px;
+    margin-bottom: 5px;
+  }
+
+  /* Duration buttons */
+  .dur-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+  }
+
+  .dur-btn {
+    background: var(--surface2);
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    color: var(--muted);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    padding: 14px 8px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.15s;
+    user-select: none;
+  }
+
+  .dur-btn.selected {
+    border-color: var(--accent2);
+    background: rgba(90,255,205,0.08);
+    color: var(--accent2);
+  }
+
+  /* Region select arrow */
+  .select-wrap {
+    position: relative;
+  }
+
+  .select-wrap::after {
+    content: '▾';
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted);
+    pointer-events: none;
+    font-size: 16px;
+  }
+
+  /* Extras */
+  .extras-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .extras-row:last-child { border-bottom: none; padding-bottom: 0; }
+  .extras-row:first-child { padding-top: 0; }
+
+  .extras-label { font-size: 15px; font-weight: 500; }
+  .extras-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+  .toggle {
+    width: 50px;
+    height: 28px;
+    background: var(--surface2);
+    border: 2px solid var(--border);
+    border-radius: 20px;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+
+  .toggle::after {
+    content: '';
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    background: var(--muted);
+    border-radius: 50%;
+    top: 3px;
+    left: 3px;
+    transition: all 0.2s;
+  }
+
+  .toggle.on {
+    background: rgba(61,111,255,0.2);
+    border-color: var(--accent);
+  }
+
+  .toggle.on::after {
+    left: 23px;
+    background: var(--accent);
+  }
+
+  .mufa-counter {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 10px;
+  }
+
+  .counter-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    background: var(--surface2);
+    color: var(--text);
+    font-size: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.15s;
+    user-select: none;
+  }
+
+  .counter-btn:active { transform: scale(0.9); }
+
+  .counter-val {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 28px;
+    font-weight: 700;
+    min-width: 30px;
+    text-align: center;
+    color: var(--accent2);
+  }
+
+  /* Price preview */
+  .price-card {
+    background: linear-gradient(135deg, rgba(61,111,255,0.15), rgba(90,255,205,0.08));
+    border: 1px solid rgba(61,111,255,0.3);
+    border-radius: var(--radius);
+    padding: 18px 16px;
+  }
+
+  .price-label {
+    font-size: 12px;
+    color: var(--muted);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+
+  .price-neto {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 38px;
+    font-weight: 700;
+    color: var(--accent2);
+    letter-spacing: 1px;
+  }
+
+  .price-iva {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  .price-breakdown {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255,255,255,0.07);
+    font-size: 13px;
+    color: var(--muted);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .price-breakdown span { color: var(--text); }
+
+  /* Submit */
+  .submit-btn {
+    width: 100%;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    padding: 18px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+  }
+
+  .submit-btn:active { transform: scale(0.98); opacity: 0.9; }
+  .submit-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* Success screen */
+  .success-screen {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 80vh;
+    text-align: center;
+    padding: 30px;
+  }
+
+  .success-icon {
+    font-size: 72px;
+    margin-bottom: 20px;
+  }
+
+  .success-screen h2 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 32px;
+    font-weight: 700;
+    margin-bottom: 10px;
+  }
+
+  .success-screen p {
+    color: var(--muted);
+    font-size: 16px;
+    line-height: 1.5;
+    margin-bottom: 30px;
+  }
+
+  .new-btn {
+    background: var(--surface);
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+    padding: 14px 30px;
+    cursor: pointer;
+    letter-spacing: 1px;
+  }
+
+  .obra-preview {
+    background: var(--surface2);
+    border: 1px dashed var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 14px;
+    color: var(--muted);
+    margin-top: 14px;
+    min-height: 42px;
+    line-height: 1.5;
+  }
+
+  .obra-preview.filled { color: var(--text); border-color: var(--accent); }
+
+  .pending-badge {
+    background: rgba(255,77,109,0.15);
+    border: 1px solid rgba(255,77,109,0.3);
+    border-radius: 8px;
+    color: #ff7b96;
+    font-size: 13px;
+    padding: 10px 14px;
+    margin-bottom: 8px;
+    display: none;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-label">Sistema de Reportes</div>
+  <h1>Hoja de Trabajo</h1>
+</header>
+
+<div class="form-body" id="formBody">
+
+  <!-- Pending submissions notice -->
+  <div class="pending-badge" id="pendingBadge">
+    📤 Hay <strong id="pendingCount">0</strong> reportes guardados pendientes de envío
+  </div>
+
+  <!-- 1. Identificación -->
+  <div class="card">
+    <div class="section-label">Identificación</div>
+    <div class="field">
+      <label>Hoja de Trabajo N°</label>
+      <input type="number" id="hojaNum" placeholder="ej. 1290" inputmode="numeric">
+    </div>
+    <div class="field">
+      <label>Fecha de término del trabajo</label>
+      <input type="date" id="fecha">
+    </div>
+  </div>
+
+  <!-- 2. Tipo de trabajo -->
+  <div class="card">
+    <div class="section-label">Tipo de Trabajo</div>
+    <div class="tipo-grid" id="tipoGrid">
+      <div class="tipo-btn" data-tipo="Montaje">
+        <span class="icon">⬇️</span>Montaje
+      </div>
+      <div class="tipo-btn" data-tipo="Desmontaje">
+        <span class="icon">⬆️</span>Desmontaje
+      </div>
+      <div class="tipo-btn" data-tipo="Dia de trabajo con ayudante">
+        <span class="icon">👥</span>Día trabajo<br>con ayudante
+      </div>
+      <div class="tipo-btn" data-tipo="Dia de trabajo sin ayudante">
+        <span class="icon">👤</span>Día trabajo<br>sin ayudante
+      </div>
+      <div class="tipo-btn" data-tipo="Trabajo en planta con ayudante">
+        <span class="icon">🏭</span>Planta<br>con ayudante
+      </div>
+      <div class="tipo-btn" data-tipo="Trabajo en planta sin ayudante">
+        <span class="icon">🏭</span>Planta<br>sin ayudante
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. Duración -->
+  <div class="card">
+    <div class="section-label">Duración</div>
+    <div class="dur-grid" id="durGrid">
+      <div class="dur-btn" data-dur="1">1 día</div>
+      <div class="dur-btn" data-dur="2">2 días</div>
+      <div class="dur-btn" data-dur="3">+2 días</div>
+    </div>
+  </div>
+
+  <!-- 4. Ubicación -->
+  <div class="card">
+    <div class="section-label">Ubicación</div>
+    <div class="field">
+      <label>Región</label>
+      <div class="select-wrap">
+        <select id="region">
+          <option value="">— Seleccionar región —</option>
+          <option value="RM" data-step="0">Metropolitana (RM)</option>
+          <option value="Valparaíso" data-step="0">Valparaíso</option>
+          <option value="Rancagua" data-step="0">O'Higgins / Rancagua</option>
+          <option value="Maule" data-step="1">Maule</option>
+          <option value="Ñuble" data-step="2">Ñuble</option>
+          <option value="Biobío" data-step="2">Biobío</option>
+          <option value="Araucanía" data-step="3">Araucanía</option>
+          <option value="Los Ríos" data-step="4">Los Ríos</option>
+          <option value="Los Lagos" data-step="5">Los Lagos</option>
+          <option value="Aysén" data-step="6">Aysén</option>
+          <option value="Magallanes" data-step="7">Magallanes</option>
+          <option value="Atacama" data-step="8">Atacama</option>
+          <option value="Coquimbo" data-step="8">Coquimbo</option>
+          <option value="Antofagasta" data-step="9">Antofagasta</option>
+          <option value="Tarapacá" data-step="10">Tarapacá</option>
+          <option value="Arica" data-step="10">Arica y Parinacota</option>
+        </select>
+      </div>
+    </div>
+    <div class="field">
+      <label>Ciudad / Localidad</label>
+      <input type="text" id="ciudad" placeholder="ej. Cauquenes">
+    </div>
+    <div class="field">
+      <label>Nombre del Pozo</label>
+      <input type="text" id="pozo" placeholder="ej. Pozo 5 (Caracol)">
+    </div>
+    <div class="field">
+      <label>Cliente / Agrícola</label>
+      <input type="text" id="cliente" placeholder="ej. Agrícola San Juan">
+    </div>
+  </div>
+
+  <!-- 5. Extras -->
+  <div class="card">
+    <div class="section-label">Extras</div>
+    <div class="extras-row">
+      <div>
+        <div class="extras-label">Mufas</div>
+        <div class="extras-sub">+$40.000 c/u</div>
+      </div>
+      <div class="toggle" id="mufaToggle" onclick="toggleMufa()"></div>
+    </div>
+    <div id="mufaCounter" style="display:none; padding: 10px 0 4px;">
+      <div class="mufa-counter">
+        <div class="counter-btn" onclick="changeMufa(-1)">−</div>
+        <div class="counter-val" id="mufaVal">1</div>
+        <div class="counter-btn" onclick="changeMufa(1)">+</div>
+        <span style="font-size:14px; color:var(--muted)">mufas</span>
+      </div>
+    </div>
+    <div class="extras-row">
+      <div>
+        <div class="extras-label">Pozo Complejo</div>
+        <div class="extras-sub">+25% sobre precio base</div>
+      </div>
+      <div class="toggle" id="complejoToggle" onclick="toggleComplejo()"></div>
+    </div>
+    <div class="field" style="margin-top:14px;">
+      <label>Observaciones</label>
+      <input type="text" id="obs" placeholder="Notas adicionales (opcional)">
+    </div>
+  </div>
+
+  <!-- 6. Obra preview -->
+  <div class="card">
+    <div class="section-label">Vista previa — Descripción Obra</div>
+    <div class="obra-preview" id="obraPreview">Se completará al llenar los campos...</div>
+  </div>
+
+  <!-- 7. Price preview -->
+  <div class="price-card" id="priceCard" style="display:none">
+    <div class="price-label">Precio Neto Estimado</div>
+    <div class="price-neto" id="priceNeto">$0</div>
+    <div class="price-iva" id="priceIva">Con IVA: $0</div>
+    <div class="price-breakdown" id="priceBreakdown"></div>
+  </div>
+
+  <!-- Submit -->
+  <button class="submit-btn" id="submitBtn" onclick="submitForm()">GUARDAR REPORTE</button>
+
+</div>
+
+<!-- Success screen -->
+<div class="success-screen" id="successScreen">
+  <div class="success-icon">✅</div>
+  <h2>Reporte Guardado</h2>
+  <p id="successMsg">El reporte fue guardado.<br>Se enviará automáticamente cuando haya señal.</p>
+  <button class="new-btn" onclick="resetForm()">+ NUEVO REPORTE</button>
+</div>
+
+<script>
+  // State
+  let selectedTipo = '';
+  let selectedDur = '';
+  let mufaOn = false;
+  let mufaCount = 1;
+  let complejoOn = false;
+
+  // Pricing
+  const BASE_MONTAJE = 410000;
+  const BASE_CON_AYU = 180000;
+  const BASE_SIN_AYU = 80000;
+  const STEP = 100000;
+  const MUFA_PRICE = 40000;
+  const IVA = 0.19;
+
+  // Set today's date
+  document.getElementById('fecha').valueAsDate = new Date();
+
+  // Tipo selection
+  document.querySelectorAll('.tipo-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tipo-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      selectedTipo = btn.dataset.tipo;
+      update();
+    });
+  });
+
+  // Duration selection
+  document.querySelectorAll('.dur-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.dur-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      selectedDur = btn.dataset.dur;
+      update();
+    });
+  });
+
+  // Input listeners
+  ['region','ciudad','pozo','cliente','hojaNum','obs'].forEach(id => {
+    document.getElementById(id).addEventListener('input', update);
+  });
+
+  function toggleMufa() {
+    mufaOn = !mufaOn;
+    document.getElementById('mufaToggle').classList.toggle('on', mufaOn);
+    document.getElementById('mufaCounter').style.display = mufaOn ? 'block' : 'none';
+    update();
+  }
+
+  function changeMufa(d) {
+    mufaCount = Math.max(1, mufaCount + d);
+    document.getElementById('mufaVal').textContent = mufaCount;
+    update();
+  }
+
+  function toggleComplejo() {
+    complejoOn = !complejoOn;
+    document.getElementById('complejoToggle').classList.toggle('on', complejoOn);
+    update();
+  }
+
+  function getRegionStep() {
+    const sel = document.getElementById('region');
+    const opt = sel.options[sel.selectedIndex];
+    return opt ? parseInt(opt.dataset.step || '0') : 0;
+  }
+
+  function calcPrice() {
+    if (!selectedTipo || !document.getElementById('region').value) return null;
+
+    const step = getRegionStep();
+    const isPlanta = selectedTipo.includes('planta');
+    const plantaStep = 0; // planta = RM price always
+
+    let base = 0;
+    if (selectedTipo === 'Montaje' || selectedTipo === 'Desmontaje') {
+      base = BASE_MONTAJE + (step * STEP);
+    } else if (selectedTipo.includes('con ayudante')) {
+      base = BASE_CON_AYU + ((isPlanta ? plantaStep : step) * STEP);
+    } else if (selectedTipo.includes('sin ayudante')) {
+      base = BASE_SIN_AYU + ((isPlanta ? plantaStep : step) * STEP);
+    }
+
+    let total = base;
+    let breakdown = [`Base (${selectedTipo}): $${fmt(base)}`];
+
+    if (complejoOn) {
+      const extra = Math.round(base * 0.25);
+      total += extra;
+      breakdown.push(`Pozo complejo (+25%): +$${fmt(extra)}`);
+    }
+
+    if (mufaOn) {
+      const mufaTotal = MUFA_PRICE * mufaCount;
+      total += mufaTotal;
+      breakdown.push(`${mufaCount} Mufa${mufaCount>1?'s':''}: +$${fmt(mufaTotal)}`);
+    }
+
+    return { neto: total, iva: Math.round(total * IVA), total: Math.round(total * 1.19), breakdown };
+  }
+
+  function fmt(n) {
+    return n.toLocaleString('es-CL');
+  }
+
+  function buildObra() {
+    const tipo = selectedTipo;
+    const pozo = document.getElementById('pozo').value.trim();
+    const cliente = document.getElementById('cliente').value.trim();
+    const ciudad = document.getElementById('ciudad').value.trim();
+    const region = document.getElementById('region').value;
+
+    if (!tipo && !pozo && !ciudad) return '';
+
+    let parts = [];
+    if (tipo) parts.push(tipo);
+    if (pozo) parts.push(pozo);
+    if (mufaOn) parts.push(`+ ${mufaCount} Mufa${mufaCount>1?'s':''}`);
+    if (complejoOn) parts.push('(Pozo Complejo)');
+    if (cliente) parts.push(`— ${cliente}`);
+    if (ciudad || region) parts.push(`${ciudad}${ciudad&&region?', ':''}${region}`);
+
+    return parts.join(' ');
+  }
+
+  function update() {
+    const obra = buildObra();
+    const preview = document.getElementById('obraPreview');
+    if (obra) {
+      preview.textContent = obra;
+      preview.classList.add('filled');
+    } else {
+      preview.textContent = 'Se completará al llenar los campos...';
+      preview.classList.remove('filled');
+    }
+
+    const price = calcPrice();
+    const card = document.getElementById('priceCard');
+    if (price) {
+      card.style.display = 'block';
+      document.getElementById('priceNeto').textContent = `$${fmt(price.neto)}`;
+      document.getElementById('priceIva').textContent = `Con IVA (19%): $${fmt(price.total)}`;
+      const bd = document.getElementById('priceBreakdown');
+      bd.innerHTML = price.breakdown.map(l => `<div>· <span>${l}</span></div>`).join('');
+    } else {
+      card.style.display = 'none';
+    }
+  }
+
+  // Offline storage
+  function getQueue() {
+    try { return JSON.parse(localStorage.getItem('reportQueue') || '[]'); } catch { return []; }
+  }
+
+  function saveToQueue(data) {
+    const q = getQueue();
+    q.push({ ...data, savedAt: new Date().toISOString(), synced: false });
+    localStorage.setItem('reportQueue', JSON.stringify(q));
+  }
+
+  function checkPending() {
+    const q = getQueue().filter(r => !r.synced);
+    const badge = document.getElementById('pendingBadge');
+    if (q.length > 0) {
+      badge.style.display = 'block';
+      document.getElementById('pendingCount').textContent = q.length;
+    } else {
+      badge.style.display = 'none';
+    }
+  }
+
+  // Google Sheets submission
+  const SHEET_URL = 'https://hook.eu1.make.com/aq8lgmjt9cwxeyn4yie3ja54nsotw7ta'; // ← Replace with your Apps Script URL
+
+  async function trySendQueue() {
+    const q = getQueue();
+    let changed = false;
+    for (let i = 0; i < q.length; i++) {
+      if (!q[i].synced) {
+        try {
+          await fetch(SHEET_URL, {
+            method: 'POST',
+            body: JSON.stringify(q[i]),
+            headers: { 'Content-Type': 'application/json' }
+          });
+          q[i].synced = true;
+          changed = true;
+        } catch (e) { break; }
+      }
+    }
+    if (changed) {
+      localStorage.setItem('reportQueue', JSON.stringify(q));
+      checkPending();
+    }
+  }
+
+  function submitForm() {
+    const hoja = document.getElementById('hojaNum').value.trim();
+    const fecha = document.getElementById('fecha').value;
+    const region = document.getElementById('region').value;
+    const ciudad = document.getElementById('ciudad').value.trim();
+    const pozo = document.getElementById('pozo').value.trim();
+
+    if (!hoja || !fecha || !selectedTipo || !selectedDur || !region || !ciudad || !pozo) {
+      alert('Por favor complete todos los campos obligatorios:\nHoja N°, Fecha, Tipo, Duración, Región, Ciudad y Pozo.');
+      return;
+    }
+
+    const price = calcPrice();
+    const obra = buildObra();
+
+    const data = {
+      hoja, fecha,
+      tipo: selectedTipo,
+      duracion: selectedDur === '3' ? '+2 días' : `${selectedDur} día${selectedDur>1?'s':''}`,
+      region, ciudad, pozo,
+      cliente: document.getElementById('cliente').value.trim(),
+      mufas: mufaOn ? mufaCount : 0,
+      pozo_complejo: complejoOn,
+      obs: document.getElementById('obs').value.trim(),
+      obra,
+      precio_neto: price ? price.neto : '',
+      precio_con_iva: price ? price.total : ''
+    };
+
+    saveToQueue(data);
+    trySendQueue();
+
+    // Show success
+    document.getElementById('formBody').style.display = 'none';
+    const s = document.getElementById('successScreen');
+    s.style.display = 'flex';
+    document.getElementById('successMsg').innerHTML =
+      `<strong>${obra}</strong><br><br>Guardado localmente.<br>Se enviará al tener señal.`;
+  }
+
+  function resetForm() {
+    document.getElementById('successScreen').style.display = 'none';
+    document.getElementById('formBody').style.display = 'flex';
+    // Reset all
+    document.getElementById('hojaNum').value = '';
+    document.getElementById('fecha').valueAsDate = new Date();
+    document.getElementById('ciudad').value = '';
+    document.getElementById('pozo').value = '';
+    document.getElementById('cliente').value = '';
+    document.getElementById('obs').value = '';
+    document.getElementById('region').value = '';
+    document.querySelectorAll('.tipo-btn, .dur-btn').forEach(b => b.classList.remove('selected'));
+    selectedTipo = ''; selectedDur = '';
+    mufaOn = false; mufaCount = 1; complejoOn = false;
+    document.getElementById('mufaToggle').classList.remove('on');
+    document.getElementById('complejoToggle').classList.remove('on');
+    document.getElementById('mufaCounter').style.display = 'none';
+    document.getElementById('mufaVal').textContent = '1';
+    document.getElementById('priceCard').style.display = 'none';
+    update();
+    checkPending();
+  }
+
+  // Init
+  checkPending();
+  if (navigator.onLine) trySendQueue();
+  window.addEventListener('online', trySendQueue);
+</script>
+</body>
+</html>
