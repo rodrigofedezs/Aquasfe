@@ -441,6 +441,15 @@
     </div>
   </div>
 
+  <!-- 1b. Primer trabajo del día -->
+  <div class="card">
+    <div class="section-label">¿Es el primer trabajo del día?</div>
+    <div class="dur-grid" id="primerGrid">
+      <div class="dur-btn selected" data-primer="si" onclick="setPrimer('si')" style="border-color: var(--accent2); color: var(--accent2);">✅ Sí<br><span style="font-size:11px;font-weight:400;color:var(--muted)">Tarifa regional</span></div>
+      <div class="dur-btn" data-primer="no" onclick="setPrimer('no')">2° trabajo<br><span style="font-size:11px;font-weight:400;color:var(--muted)">Tarifa central</span></div>
+    </div>
+  </div>
+
   <!-- 2. Tipo de trabajo -->
   <div class="card">
     <div class="section-label">Tipo de Trabajo</div>
@@ -582,6 +591,7 @@
   let mufaOn = false;
   let mufaCount = 1;
   let complejoOn = false;
+  let primerTrabajo = true; // default: first job of the day
 
   // Pricing
   const BASE_MONTAJE = 410000;
@@ -638,6 +648,20 @@
     update();
   }
 
+  function setPrimer(val) {
+    primerTrabajo = val === 'si';
+    document.querySelectorAll('[data-primer]').forEach(b => {
+      b.classList.remove('selected');
+      b.style.borderColor = '';
+      b.style.color = '';
+    });
+    const btn = document.querySelector(`[data-primer="${val}"]`);
+    btn.classList.add('selected');
+    btn.style.borderColor = 'var(--accent2)';
+    btn.style.color = 'var(--accent2)';
+    update();
+  }
+
   function getRegionStep() {
     const sel = document.getElementById('region');
     const opt = sel.options[sel.selectedIndex];
@@ -647,21 +671,21 @@
   function calcPrice() {
     if (!selectedTipo || !document.getElementById('region').value) return null;
 
-    const step = getRegionStep();
+    // If second job of the day, always use central tariff (step = 0)
+    const step = primerTrabajo ? getRegionStep() : 0;
     const isPlanta = selectedTipo.includes('planta');
-    const plantaStep = 0; // planta = RM price always
 
     let base = 0;
     if (selectedTipo === 'Montaje' || selectedTipo === 'Desmontaje') {
       base = BASE_MONTAJE + (step * STEP);
     } else if (selectedTipo.includes('con ayudante')) {
-      base = BASE_CON_AYU + ((isPlanta ? plantaStep : step) * STEP);
+      base = BASE_CON_AYU + ((isPlanta ? 0 : step) * STEP);
     } else if (selectedTipo.includes('sin ayudante')) {
-      base = BASE_SIN_AYU + ((isPlanta ? plantaStep : step) * STEP);
+      base = BASE_SIN_AYU + ((isPlanta ? 0 : step) * STEP);
     }
 
     let total = base;
-    let breakdown = [`Base (${selectedTipo}): $${fmt(base)}`];
+    let breakdown = [`Base (${selectedTipo}${!primerTrabajo ? ' — tarifa central' : ''}): $${fmt(base)}`];
 
     if (complejoOn) {
       const extra = Math.round(base * 0.25);
@@ -749,7 +773,7 @@
   }
 
   // Google Sheets submission
-  const SHEET_URL = 'https://hook.eu1.make.com/aq8lgmjt9cwxeyn4yie3ja54nsotw7ta'; // ← Replace with your Apps Script URL
+  const SHEET_URL = 'https://hook.eu1.make.com/aq8lgmjt9cwxeyn4yie3ja54nsotw7ta';
 
   async function trySendQueue() {
     const q = getQueue();
@@ -792,6 +816,7 @@
       hoja, fecha,
       tipo: selectedTipo,
       duracion: selectedDur === '3' ? '+2 días' : `${selectedDur} día${selectedDur>1?'s':''}`,
+      primer_trabajo: primerTrabajo ? 'Sí' : 'No',
       region, ciudad, pozo,
       cliente: document.getElementById('cliente').value.trim(),
       mufas: mufaOn ? mufaCount : 0,
@@ -826,6 +851,8 @@
     document.getElementById('region').value = '';
     document.querySelectorAll('.tipo-btn, .dur-btn').forEach(b => b.classList.remove('selected'));
     selectedTipo = ''; selectedDur = '';
+    primerTrabajo = true;
+    setPrimer('si');
     mufaOn = false; mufaCount = 1; complejoOn = false;
     document.getElementById('mufaToggle').classList.remove('on');
     document.getElementById('complejoToggle').classList.remove('on');
