@@ -486,7 +486,7 @@
   </div>
 
   <!-- 4. Ubicación -->
-  <div class="card">
+  <div class="card" id="ubicacionCard">
     <div class="section-label">Ubicación</div>
     <div class="field">
       <label>Región</label>
@@ -527,7 +527,7 @@
   </div>
 
   <!-- 5. Extras -->
-  <div class="card">
+  <div class="card" id="extrasCard">
     <div class="section-label">Extras</div>
     <div class="extras-row">
       <div>
@@ -610,9 +610,36 @@
       document.querySelectorAll('.tipo-btn').forEach(b => b.classList.remove('selected'));
       btn.classList.add('selected');
       selectedTipo = btn.dataset.tipo;
+      updateFormVisibility();
       update();
     });
   });
+
+  function updateFormVisibility() {
+    const isPlanta = selectedTipo && selectedTipo.includes('planta');
+    const ubicacion = document.getElementById('ubicacionCard');
+    const extras = document.getElementById('extrasCard');
+    
+    if (isPlanta) {
+      ubicacion.style.display = 'none';
+      extras.style.display = 'none';
+      // Auto-set region to RM
+      document.getElementById('region').value = 'RM';
+      document.getElementById('ciudad').value = '';
+      document.getElementById('pozo').value = '';
+      document.getElementById('cliente').value = 'Wellpumps';
+    } else {
+      ubicacion.style.display = 'block';
+      extras.style.display = 'block';
+      // Clear auto-filled values if switching from planta
+      if (document.getElementById('ciudad').value === 'Wellpumps') {
+        document.getElementById('region').value = '';
+        document.getElementById('ciudad').value = '';
+        document.getElementById('pozo').value = '';
+        document.getElementById('cliente').value = '';
+      }
+    }
+  }
 
   // Duration selection
   document.querySelectorAll('.dur-btn').forEach(btn => {
@@ -713,7 +740,14 @@
     const ciudad = document.getElementById('ciudad').value.trim();
     const region = document.getElementById('region').value;
 
-    if (!tipo && !pozo && !ciudad) return '';
+    if (!tipo) return '';
+
+    // Special case for planta
+    if (tipo.includes('planta')) {
+      return `${tipo}, Wellpumps, RM.`;
+    }
+
+    if (!pozo && !ciudad) return tipo;
 
     let parts = [];
     if (tipo) parts.push(tipo);
@@ -750,62 +784,22 @@
     }
   }
 
-  // Offline storage
-  function getQueue() {
-    try { return JSON.parse(localStorage.getItem('reportQueue') || '[]'); } catch { return []; }
-  }
-
-  function saveToQueue(data) {
-    const q = getQueue();
-    q.push({ ...data, savedAt: new Date().toISOString(), synced: false });
-    localStorage.setItem('reportQueue', JSON.stringify(q));
-  }
-
-  function checkPending() {
-    const q = getQueue().filter(r => !r.synced);
-    const badge = document.getElementById('pendingBadge');
-    if (q.length > 0) {
-      badge.style.display = 'block';
-      document.getElementById('pendingCount').textContent = q.length;
-    } else {
-      badge.style.display = 'none';
-    }
-  }
-
-  // Google Sheets submission
   const SHEET_URL = 'https://hook.eu1.make.com/aq8lgmjt9cwxeyn4yie3ja54nsotw7ta';
 
-  async function trySendQueue() {
-    const q = getQueue();
-    let changed = false;
-    for (let i = 0; i < q.length; i++) {
-      if (!q[i].synced) {
-        try {
-          await fetch(SHEET_URL, {
-            method: 'POST',
-            body: JSON.stringify(q[i]),
-            headers: { 'Content-Type': 'application/json' }
-          });
-          q[i].synced = true;
-          changed = true;
-        } catch (e) { break; }
-      }
-    }
-    if (changed) {
-      localStorage.setItem('reportQueue', JSON.stringify(q));
-      checkPending();
-    }
-  }
-
-  function submitForm() {
+  async function submitForm() {
     const hoja = document.getElementById('hojaNum').value.trim();
     const fecha = document.getElementById('fecha').value;
     const region = document.getElementById('region').value;
     const ciudad = document.getElementById('ciudad').value.trim();
     const pozo = document.getElementById('pozo').value.trim();
 
-    if (!hoja || !fecha || !selectedTipo || !selectedDur || !region || !ciudad || !pozo) {
-      alert('Por favor complete todos los campos obligatorios:\nHoja N°, Fecha, Tipo, Duración, Región, Ciudad y Pozo.');
+    const isPlanta = selectedTipo && selectedTipo.includes('planta');
+    if (!hoja || !fecha || !selectedTipo || !selectedDur) {
+      alert('Por favor complete todos los campos obligatorios:\nHoja N°, Fecha, Tipo y Duración.');
+      return;
+    }
+    if (!isPlanta && (!region || !ciudad || !pozo)) {
+      alert('Por favor complete todos los campos obligatorios:\nRegión, Ciudad y Pozo.');
       return;
     }
 
@@ -827,21 +821,29 @@
       precio_con_iva: price ? price.total : ''
     };
 
-    saveToQueue(data);
-    trySendQueue();
-
-    // Show success
+    // Show success immediately
     document.getElementById('formBody').style.display = 'none';
     const s = document.getElementById('successScreen');
     s.style.display = 'flex';
     document.getElementById('successMsg').innerHTML =
-      `<strong>${obra}</strong><br><br>Guardado localmente.<br>Se enviará al tener señal.`;
+      `<strong>${obra}</strong><br><br>Reporte enviado correctamente.`;
+
+    // Send directly to Make.com
+    try {
+      await fetch(SHEET_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        body: JSON.stringify(data),
+        headers: { 'Content-Type': 'application/json' }
+      });
+    } catch(e) {
+      console.error('Error sending:', e);
+    }
   }
 
   function resetForm() {
     document.getElementById('successScreen').style.display = 'none';
     document.getElementById('formBody').style.display = 'flex';
-    // Reset all
     document.getElementById('hojaNum').value = '';
     document.getElementById('fecha').valueAsDate = new Date();
     document.getElementById('ciudad').value = '';
@@ -853,6 +855,8 @@
     selectedTipo = ''; selectedDur = '';
     primerTrabajo = true;
     setPrimer('si');
+    document.getElementById('ubicacionCard').style.display = 'block';
+    document.getElementById('extrasCard').style.display = 'block';
     mufaOn = false; mufaCount = 1; complejoOn = false;
     document.getElementById('mufaToggle').classList.remove('on');
     document.getElementById('complejoToggle').classList.remove('on');
@@ -860,13 +864,8 @@
     document.getElementById('mufaVal').textContent = '1';
     document.getElementById('priceCard').style.display = 'none';
     update();
-    checkPending();
   }
 
-  // Init
-  checkPending();
-  if (navigator.onLine) trySendQueue();
-  window.addEventListener('online', trySendQueue);
 </script>
 </body>
 </html>
